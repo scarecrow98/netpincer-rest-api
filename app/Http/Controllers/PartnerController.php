@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class PartnerController extends Controller
 {
-    public function get(Request $req) {
-        return Partner::all();
+    public function list(Request $req) {
+        return Partner::select(['name', 'image', 'delivery_fee'])->get();
     }
 }

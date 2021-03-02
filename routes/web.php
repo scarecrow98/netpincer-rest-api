@@ -14,7 +14,12 @@
 */
 
 $router->group([ 'prefix' => 'api/v1' ], function() use($router) {
-    $router->get('partners/get', 'PartnerController@get');
+    //parnters
+    $router->get('partners/list', 'PartnerController@list');
+
+    //users
+    $router->post('user/registrate', 'UserController@registrate');
+    $router->post('user/login', 'UserController@login');
 });
 
 $router->get('/', function () use ($router) {

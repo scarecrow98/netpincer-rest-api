@@ -11,9 +11,10 @@ create table partners(
     description varchar(500),
     image varchar(100) default null,
     color_style char(7) default null,
+    courier_share_percent double default null,
+    delivery_fee int default 0,
     login_id char(6) not null unique,
 	password varchar(100) not null,
-    courier_share_percent double default null,
     foreign key (partner_type_id) references partner_types(id)
 );
 

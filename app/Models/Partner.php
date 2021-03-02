@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Partner extends Model {
     public $timestamps = false;
     public $table = 'partners';
-    public $with = [ 'type' ];
     public $hidden = [ 'password', 'login_id', 'open_times', 'product_categories' ];
-    public $appends = [ 'category_list', 'time_table' ];
+    //public $appends = [ 'category_list', 'time_table' ];
+    public $appends = [ 'distance_from_user' ];
 
     private $day_map = [
         'mon'   => 'hétfő',
@@ -31,6 +31,10 @@ class Partner extends Model {
 
     public function product_categories() {
         return $this->hasMany('App\Models\ProductCategory', 'partner_id', 'id');
+    }
+
+    public function getDistanceFromUserAttribute() {
+        return 1340;
     }
 
     public function getTimeTableAttribute() {
