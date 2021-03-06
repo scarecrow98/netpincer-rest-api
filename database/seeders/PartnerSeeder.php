@@ -57,5 +57,19 @@ class PartnerSeeder extends Seeder
             'courier_share_percent' => 0.12,
             'partner_type_id' => 2
         ]);
+
+        DB::table('partners')->insert([
+            'partner_type_id' => 1,
+            'name' => 'Kele csárda',
+            'address' => '7020 Dunaföldvár, Paksi utca 68',
+            'location' => DB::raw('point(18.9179809, 46.8001719)'),
+            'description' => 'Lorem ipsum dolor sit amet',
+            'image' => 'cover.png',
+            'color_style' => 'e4e4e4',
+            'login_id' => Str::random(6),
+            'password' => Hash::make('asdasdasd'),
+            'courier_share_percent' => 0.12,
+            'partner_type_id' => 2
+        ]);
     }
 }

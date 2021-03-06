@@ -3,13 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Auth\Authenticatable;
 
-class Partner extends Model {
+
+class Partner extends Model implements AuthenticatableContract, JWTSubject {
+    use Authenticatable;
+    
     public $timestamps = false;
     public $table = 'partners';
-    public $hidden = [ 'password', 'login_id', 'open_times', 'product_categories' ];
-    //public $appends = [ 'category_list', 'time_table' ];
-    public $appends = [ 'distance_from_user' ];
+    public $hidden = [ 'password', 'open_times', 'product_categories', 'location' ];
+    public $appends = [ 'category_list', 'time_table' ];
 
     private $day_map = [
         'mon'   => 'hétfő',
@@ -52,5 +57,15 @@ class Partner extends Model {
         return array_map(function($row) {
             return $row['name'];
         }, $this->product_categories->toArray());
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }
