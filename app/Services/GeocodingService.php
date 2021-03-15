@@ -22,6 +22,7 @@ class GeocodingService {
 
         $response->throw();
 
+
         $data = $response->json();
 
         if ($data['status'] != 'OK') {

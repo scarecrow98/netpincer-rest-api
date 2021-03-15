@@ -5,109 +5,50 @@ namespace App\Http\Controllers;
 use App\Services\GeocodingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Partner;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Hash;
+use App\Services\PartnerService;
+use App\Services\UploadService;
 
 class PartnerController extends Controller
 {
-    public function list(Request $req) {
+    public function list(Request $req, PartnerService $partner_service) {
         $user_lng = $req->input('user_lng') ?? 18.9210095;
         $user_lat = $req->input('user_lat') ?? 46.8033416;
         $dist_limit = $req->input('dist_limit') ?? 3000;
 
-        $partners = DB::select(
-            'CALL list_nearby_partners(point(?, ?), ?)',
-            [ $user_lng, $user_lat, $dist_limit ]
-        );
-
-        foreach ($partners as &$partner) {
-            $partner->image = url() . '/partner_images/etterem.jpg';
-            $partner->current_open_time = '08:00 - 16:00';
-            $partner->estimated_delivery_time = 120;
-        }
-
-        return $partners;
+        return $partner_service->getPartnersWithinDistance($user_lng, $user_lat, $dist_limit);
     }
 
     public function profile($id) {
-        try {
-            return $this->success(Partner::findOrFail($id));
-        } catch(ModelNotFoundException $e) {
-            return $this->fail(null, 'No partner found with the given id');
-        }
+        return Partner::findOrFail($id);
     }
 
     public function categoryList($id) {
-        try {
-            return $this->success(Partner::findOrFail($id)->product_categories);
-        } catch(ModelNotFoundException $e) {
-            return $this->fail(null, 'No partner found with the given id');
-        }
+        return Partner::findOrFail($id)->product_categories;
     }
 
     public function partnerTypeList() {
         return DB::table('partner_types')->get();
     }
 
-    public function registrate(Request $req, GeocodingService $geo_service) {
-        $validator = Validator::make($req->all(), [
-            'partner_type_id' => 'required|integer|exists:partner_types,id',
-            'name'          => 'required|max:255',
-            'post_code'     => 'required|digits:4',
-            'city'          => 'required|max:255',
-            'street'        => 'required|max:255',
-            'description'   => 'required|max:1000',
-            'color_style'   => 'required|max:7',
-            'delivery_fee'  => 'required|integer',
-            'email'         => 'required|unique:partners|max:255|email:filter',
-            'courier_share_percent'         => 'required|numeric|max:1.0',
-            'password'      => 'required|min:8',
-            'password_again'=> 'required|min:8|same:password'
-        ]);
-
-        if ($validator->fails()) {
-            return $this->fail($validator->errors()->all());
-        }
-
-        $data = $req->all();
-        $address_string = $data['post_code'] .' '. $data['city'] . ', ' . $data['street'];
-        $geo_data = null;
+    public function registrate(Request $req, GeocodingService $geo_service, PartnerService $partner_service, UploadService $upload_service) {
 
         try {
-            $geo_data = $geo_service->getCoordinatesFromAddress($address_string);
-        } catch(\Exception $ex) {
-            return $this->fail('We could not determine your geolocation from the address you provided');
-        }
+            DB::beginTransaction();
 
-        $success = DB::insert(
-            "INSERT INTO partners(
-                partner_type_id,name,
-                address,location,description,
-                image,color_style,delivery_fee,
-                email,password,courier_share_percent)
-            VALUES(?,?,?,point(?,?),?,?,?,?,?,?,?)",
-            [
-                $data['partner_type_id'],
-                $data['name'],
-                $geo_data['formatted_address'],
-                $geo_data['lng'], $geo_data['lat'],
-                $data['description'],
-                'cover.png',
-                str_replace('#', '', $data['color_style']),
-                $data['delivery_fee'],
-                $data['email'],
-                Hash::make($data['password']),
-                $data['courier_share_percent']
-            ]
-        );
+            $image_name = $upload_service->uploadPartnerImage($req->file('partnerImage'));
 
-        if ($success) {
+            $partner_data = json_decode($req->input('partnerData') ?? '{}', true);
+            $partner_data['image'] = $image_name;
+            $partner_service->registerPartner($geo_service, $partner_data);
+        
+            DB::commit();
+
             return $this->success();
+        } catch(\Exception $ex) {
+            DB::rollBack();
+            return $this->fail(null, $ex->getMessage());
         }
-
-        return $this->fail();
     }
 
     public function geotest(Request $req, GeocodingService $geo_service) {

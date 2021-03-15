@@ -4,3 +4,6 @@ Homestead.json
 Homestead.yaml
 .env
 .phpunit.result.cache
+
+/public/partner_images/*
+/public/product_images/*

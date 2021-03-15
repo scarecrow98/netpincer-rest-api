@@ -22,9 +22,9 @@ create table partner_open_times(
 	id int auto_increment primary key,
     partner_id int not null references partners(id),
     day enum('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun') not null,
-    open_from time not null,
-    open_to time not null,
-    foreign key (partner_id) references partners(id)
+    open_from time default null,
+    open_to time default null,
+    foreign key (partner_id) references partners(id) on delete cascade
 );
 
 create table product_categories(
@@ -56,7 +56,8 @@ create table product_has_allergen(
     product_id int not null,
     product_allergen_id int not null,
     foreign key (product_id) references products(id),
-    foreign key (product_allergen_id) references product_allergens(id)
+    foreign key (product_allergen_id) references product_allergens(id),
+    primary key (product_id, product_allergen_id)
 );
 
 create table product_periods(
@@ -143,3 +144,38 @@ create table courier_deliveries(
     foreign key (courier_id) references couriers(id),
     foreign key (order_id) references orders(id)
 );
+
+DELIMITER $$
+CREATE PROCEDURE `list_nearby_partners`(in user_position point, in dist_limit int)
+begin
+	select
+		*,
+        case
+			when dist_from_user_m < 1000
+            then concat(dist_from_user_m, 'm')
+            else concat(round(dist_from_user_m / 1000., 1), ' km')
+		end as dist_from_user
+    from (
+		select
+			p.id,
+			name,
+			image,
+			case
+				when delivery_fee = 0
+                then 'ingyenes'
+                else concat(delivery_fee, ' Ft')
+			end as delivery_fee,
+			round(ST_distance_sphere(location, user_position)) as dist_from_user_m,
+			case
+				when open_from is null
+				then 'zárva'
+				else concat(time_format(open_from, '%H:%i'), ' - ', time_format(open_to, '%H:%i'))
+			end as current_open_time
+		from netpincer.partners p 
+		left join netpincer.partner_open_times o
+		on (p.id = o.partner_id) and (o.day - 1 = weekday(curdate()))
+	) k 
+	where dist_from_user_m < dist_limit
+    order by dist_from_user_m asc;
+end$$
+DELIMITER ;

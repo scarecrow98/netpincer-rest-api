@@ -32,10 +32,14 @@ $router->group([ 'prefix' => 'api/v1' ], function() use($router) {
     //auth
     $router->post('auth/login/user', 'AuthController@loginUser');
     $router->post('auth/login/partner', 'AuthController@loginPartner');
+    $router->get('auth/authorize/partner', 'AuthController@authorizePartner');
 
-    $router->get('auth-test', function() {
-        return auth()->guard('user')->user();
-    });
+    //guarded routes
+    $router->post('products/categories/save', ['uses' => 'ProductController@saveCategory', 'middleware' => 'auth:partner']);
+    $router->post('products/save', ['uses' => 'ProductController@saveProduct', 'middleware' => 'auth:partner']);
+    $router->get('products/get/{id}', ['uses' => 'ProductController@get', 'middleware' => 'auth:partner']);
+    $router->get('products/categories/list', ['uses' => 'ProductController@getCategories', 'middleware' => 'auth:partner']);
+    $router->get('products/list', ['uses' => 'ProductController@list', 'middleware' => 'auth:partner']);
 });
 
 $router->get('/', function () use ($router) {

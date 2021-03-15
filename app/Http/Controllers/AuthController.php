@@ -14,6 +14,12 @@ class AuthController extends Controller {
         return $this->login('partner', $req->only(['email', 'password']));
     }
 
+    public function authorizePartner() {
+        return [
+            'status' =>  auth()->guard('partner')->user() != null
+        ];
+    }
+
     private function login(string $guard, array $credentials) {
 
         if ($token = Auth::guard($guard)->attempt($credentials)) {
@@ -24,4 +30,5 @@ class AuthController extends Controller {
 
         return $this->fail(null, 'Login failed');
     }
+
 }
