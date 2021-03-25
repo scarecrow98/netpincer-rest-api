@@ -26,7 +26,7 @@ class GeocodingService {
         $data = $response->json();
 
         if ($data['status'] != 'OK') {
-            throw new Exception();
+            throw new Exception('Could not determine the geolocation from the provided address');
         }
 
         return [

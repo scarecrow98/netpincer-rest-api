@@ -14,6 +14,10 @@ class AuthController extends Controller {
         return $this->login('partner', $req->only(['email', 'password']));
     }
 
+    public function loginCourier(Request $req) {
+        return $this->login('courier', $req->only(['email', 'password']));
+    }
+
     public function authorizePartner() {
         return [
             'status' =>  auth()->guard('partner')->user() != null

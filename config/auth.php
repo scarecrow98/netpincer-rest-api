@@ -15,6 +15,10 @@ return [
             'driver' => 'jwt',
             'provider' => 'partners',
         ],
+        'courier' => [
+            'driver' => 'jwt',
+            'provider' => 'couriers',
+        ],
     ],
 
     'providers' => [
@@ -25,6 +29,10 @@ return [
         'partners' => [
             'driver' => 'eloquent',
             'model' => \App\Models\Partner::class
+        ],
+        'couriers' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Courier::class
         ]
     ]
 ];

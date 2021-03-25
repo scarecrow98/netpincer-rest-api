@@ -15,7 +15,14 @@ class Product extends Model {
         'discount'
     ];
 
+    public $appends = ['category_name'];
+
     public function category() {
         return $this->belongsTo('App\Models\ProductCategory', 'product_category_id', 'id');
     }
+
+    public function getCategoryNameAttribute() {
+        return $this->category->name;
+    }
+
 }

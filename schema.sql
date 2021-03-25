@@ -123,8 +123,9 @@ create table couriers(
 	name varchar(255) not null,
     email varchar(255) unique not null,
     phone_number varchar(30) not null,
-    login_id char(6),
     password varchar(100) not null
+    address varchar(255) not null,
+    location geometry default null
 );
 
 create table courier_periods(

@@ -2,12 +2,34 @@
 
 namespace App\Services;
 
+use App\Models\Product;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 
 class PartnerService {
+    public function getProductsForUser($partner_id) {
+        $products = Product::where('partner_id', $partner_id)
+                            ->orderByDesc('product_category_id')->get();
+        
+
+        $products->each(function($product) {
+            $product->makeHidden('category');
+
+            if ($product->image) {
+                $product->image = url() . '/product_images/' . $product->image;
+            } else {
+                $product->image = url() . '/images/product_default.jpg';
+            }
+
+            $product->unit_price = $product->unit_price . ' Ft';
+            $product->discount = $product->discount ? $product->discount . '%' : null;
+        });
+
+        return $products;
+    }
+
     public function getPartnersWithinDistance($user_lng, $user_lat, $dist_limit) {
         $partners = DB::select(
             'CALL list_nearby_partners(point(?, ?), ?)',

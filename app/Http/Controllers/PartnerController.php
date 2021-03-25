@@ -19,6 +19,14 @@ class PartnerController extends Controller
         return $partner_service->getPartnersWithinDistance($user_lng, $user_lat, $dist_limit);
     }
 
+    public function productListForUser(PartnerService $partner_service, $partner_id) {
+        try {
+            return $partner_service->getProductsForUser($partner_id);
+        } catch(\Exception $ex) {
+            return $this->fail(null, $ex->getMessage());
+        }
+    }
+
     public function profile($id) {
         return Partner::findOrFail($id);
     }

@@ -21,10 +21,18 @@ $router->group([ 'prefix' => 'api/v1' ], function() use($router) {
     $router->get('partners/profile/{id}', 'PartnerController@profile');
     $router->get('partners/{id}/category-list', 'PartnerController@categoryList');
     $router->post('partners/geotest', 'PartnerController@geotest');
+    $router->get('partners/{partner_id}/products', 'PartnerController@productListForUser');
+
+    //couriers
+    $router->post('courier/registrate', 'CourierController@registrate');
 
     //users
     $router->post('user/registrate', 'UserController@registrate');
     $router->post('user/login', 'UserController@login');
+    
+    //orders
+    $router->post('orders/save', 'OrderController@save');
+    $router->get('orders/latest',  ['uses' => 'OrderController@getLatestOrders', 'middleware' => 'auth:partner']);
 
     //product allergens
     $router->get('general/allergens/list', 'GeneralController@allergenList');
@@ -32,6 +40,7 @@ $router->group([ 'prefix' => 'api/v1' ], function() use($router) {
     //auth
     $router->post('auth/login/user', 'AuthController@loginUser');
     $router->post('auth/login/partner', 'AuthController@loginPartner');
+    $router->post('auth/login/courier', 'AuthController@loginCourier');
     $router->get('auth/authorize/partner', 'AuthController@authorizePartner');
 
     //guarded routes
